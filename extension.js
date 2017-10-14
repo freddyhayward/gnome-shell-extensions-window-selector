@@ -112,23 +112,11 @@ function enable() {
     }
     workViewInjections['_hideTooltips'] = undefined;
 
-    WorkspacesView.WorkspacesView.prototype._hideWorkspacesTooltips = function() {
-        global.stage.set_key_focus(this._prevFocusActor);
-        this._pickWorkspace = false;
-        for (let i = 0; i < this._workspaces.length; i++)
-            this._workspaces[i].hideTooltip();
-    }
-    workViewInjections['_hideWorkspacesTooltips'] = undefined;
-
     WorkspacesView.WorkspacesView.prototype._onKeyRelease = function(s, o) {
         if (this._pickWindow &&
             (o.get_key_symbol() == Clutter.KEY_Alt_L ||
              o.get_key_symbol() == Clutter.KEY_Alt_R))
             this._hideTooltips();
-        if (this._pickWorkspace &&
-            (o.get_key_symbol() == Clutter.KEY_Control_L ||
-             o.get_key_symbol() == Clutter.KEY_Control_R))
-            this._hideWorkspacesTooltips();
     }
     workViewInjections['_onKeyRelease'] = undefined;
 
@@ -144,16 +132,6 @@ function enable() {
             this._active = global.screen.get_active_workspace_index();
             this._pickWindow = true;
             this._workspaces[global.screen.get_active_workspace_index()].showWindowsTooltips();
-            return true;
-        }
-        if ((o.get_key_symbol() == Clutter.KEY_Control_L ||
-             o.get_key_symbol() == Clutter.KEY_Control_R)
-            && !this._pickWindow) {
-            this._prevFocusActor = global.stage.get_key_focus();
-            global.stage.set_key_focus(null);
-            this._pickWorkspace = true;
-            for (let i = 0; i < this._workspaces.length; i++)
-                this._workspaces[i].showTooltip();
             return true;
         }
 
@@ -188,23 +166,6 @@ function enable() {
             if (win)
                 Main.activateWindow(win, global.get_current_time());
 
-            return true;
-        }
-        if (this._pickWorkspace) {
-            let c = o.get_key_symbol() - Clutter.KEY_KP_0;
-            if (c > 9 || c <= 0) {
-                c = o.get_key_symbol() - Clutter.KEY_0;
-                if (c > 9 || c <= 0) {
-                    this._hideWorkspacesTooltips();
-                    return false;
-                }
-            }
-
-            let workspace = this._workspaces[c - 1];
-            if (workspace !== undefined)
-                workspace.metaWorkspace.activate(global.get_current_time());
-
-            this._hideWorkspacesTooltips();
             return true;
         }
         return false;
